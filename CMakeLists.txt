@@ -1,12 +1,19 @@
 cmake_minimum_required(VERSION 2.6)
 
 # Set to wherever your cmake modules are
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../../cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Make sure you have all required modules/libraries installed in the system
 find_package(CXX11 REQUIRED)
 
 project(probability_library)
+
+if(INCLUDE_INSTALL_DIR)
+else()
+set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/include)
+endif()
+
+message(STATUS "Include Directory (INCLUDE_INSTALL_DIR):   ${INCLUDE_INSTALL_DIR}")
 
 # Lets be pedantic
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
