@@ -216,19 +216,94 @@ TEST(StaticDynamic, StaticColExtentsTest)
   auto extentsAgB = prob::core::static_col_extents<A, prob::given, B>::extents();
   EXPECT_EQ(extentsAgB, std::make_tuple<int>(A::extent()));
 
-  int sizeABCDgE = prob::core::static_col_extents<A, B, C, D prob::given, E>::size();
+  int sizeABCDgE = prob::core::static_col_extents<A, B, C, D, prob::given, E>::size();
   EXPECT_EQ(sizeABCDgE, A::extent()*B::extent()*C::extent()*D::extent());
-  auto extentsABCDgE = prob::core::static_col_extents<A, B, C, D prob::given, E>::extents();
+  std::tuple<int,int,int,int> extentsABCDgE = prob::core::static_col_extents<A, B, C, D, prob::given, E>::extents();
   auto expected = std::make_tuple<int,int,int,int>(A::extent(), B::extent(), C::extent(), D::extent());
   EXPECT_EQ(extentsABCDgE, expected);
 }
 
 TEST(Iterator, IndexIteratorTest)
 {
-  /** @todo Write this test */
+  auto extents = std::make_tuple(A::extent(), B::extent(), 1, C::extent(), D::extent());
+
+  int _a = 0;
+  int _b = 0;
+  int _c = 0;
+  int _d = 0;
+
+  auto f = [&_a, &_b, &_c, &_d] (const A& a, const B& b, const prob::given& g, const C& c, const B& d)
+  {
+    EXPECT_EQ(prob::read_index<A>::read(a), _a);
+    EXPECT_EQ(prob::read_index<B>::read(b), _b);
+    EXPECT_EQ(prob::read_index<C>::read(c), _c);
+    EXPECT_EQ(prob::read_index<D>::read(d), _d);
+
+    _d++;
+    if(_d == D::extent())
+    {
+      _d = 0;
+      _c++;
+      if(_c == C::extent())
+      {
+        _c = 0;
+        _b++;
+        if(_b == B::extent())
+        {
+          _b = 0;
+          _a++;
+          if(_a == A::extent())
+          {
+            _a = 0;
+          }
+        }
+      }
+    }
+  };
+
+  prob::core::index_iterator< prob::core::vars<A, B, prob::given, C, D> >::apply_all(f,
+              std::make_tuple(), extents);
+
 }
 
 TEST(Iterator, ReverseIndexIteratorTest)
 {
-  /** @todo Write this test */
+  auto extents = std::make_tuple(A::extent(), B::extent(), 1, C::extent(), D::extent());
+
+  int _a = 0;
+  int _b = 0;
+  int _c = 0;
+  int _d = 0;
+
+  auto f = [&_a, &_b, &_c, &_d] (const A& a, const B& b, const prob::given& g, const C& c, const B& d)
+  {
+    EXPECT_EQ(prob::read_index<A>::read(a), _a);
+    EXPECT_EQ(prob::read_index<B>::read(b), _b);
+    EXPECT_EQ(prob::read_index<C>::read(c), _c);
+    EXPECT_EQ(prob::read_index<D>::read(d), _d);
+
+    _a++;
+    if(_a == A::extent())
+    {
+      _a = 0;
+      _b++;
+      if(_b == B::extent())
+      {
+        _b = 0;
+        _c++;
+        if(_c == C::extent())
+        {
+          _c = 0;
+          _d++;
+          if(_d == D::extent())
+          {
+            _d = 0;
+          }
+        }
+      }
+    }
+  };
+
+  prob::core::index_iterator_reverse< prob::core::vars<A, B, prob::given, C, D> >::apply_all(f,
+              std::make_tuple(), extents);
 }

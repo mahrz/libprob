@@ -17,13 +17,9 @@
  * @todo Write unit tests
  * @todo Main page and examples
  * @todo License & Readme
- * @todo Externalize repository
  * @todo Github pages
  *
- * Important but still not in v0.1
- * @todo More unit tests for the internals
- *
- * New Features
+ * For Version v0.2
  * @todo Information Decomposition (Reconstruction functions)
  * @todo Advanced Information Theoretic Functions
  * @todo Alternative Backends
