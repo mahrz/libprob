@@ -390,37 +390,37 @@ namespace prob
 		}
 
     template<typename B>
-		bool operator ==(const B& b)
+		bool operator ==(const B& b) const
 		{
       return _val == read_index<B>::read(b);
 		}
 
     template<typename B>
-		bool operator !=(const B& b)
+		bool operator !=(const B& b) const
 		{
       return _val != read_index<B>::read(b);
 		}
 
     template<typename B>
-		bool operator <=(const B& b)
+		bool operator <=(const B& b) const
 		{
       return _val <= read_index<B>::read(b);
 		}
 
     template<typename B>
-		bool operator >=(const B& b)
+		bool operator >=(const B& b) const
 		{
       return _val >= read_index<B>::read(b);
 		}
 
     template<typename B>
-		bool operator <(const B& b)
+		bool operator <(const B& b) const
 		{
       return _val < read_index<B>::read(b);
 		}
 
     template<typename B>
-		bool operator >(const B& b)
+		bool operator >(const B& b) const
 		{
       return _val > read_index<B>::read(b);
 		}
