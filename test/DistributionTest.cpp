@@ -1,11 +1,33 @@
 #include "gtest/gtest.h"
 #include "TestVariables.hpp"
 
-TEST(Distribution, DistributionProperties)
-{
-  prob::distribution<double,A,B> pAB;
-  prob::distribution<double,A,B, prob::given, C> pABgC;
+class Distribution : public ::testing::Test {
+ protected:
+  virtual void SetUp()
+  {
+   for(A a = 0; a < A::extent();a++)
+     for(B b = 0; b < B::extent();b++)
+       for(C c = 0; c < C::extent();c++)
+         for(D d = 0; d < D::extent();d++)
+           pABgCD(a,b|c,d) = prob::read_index<A>::read(a) * prob::read_index<B>::read(b) *
+             prob::read_index<C>::read(c) * prob::read_index<D>::read(d);
 
+   for(A a = 0; a < A::extent();a++)
+     for(B b = 0; b < B::extent();b++)
+         pAB(a,b) = prob::read_index<A>::read(a) *B::extent() + prob::read_index<B>::read(b);
+  }
+
+  // virtual void TearDown() {}
+
+ prob::distribution<double,A,B> pAB;
+ prob::distribution<double,A,B, prob::given, C> pABgC;
+ prob::distribution<double,A,B, prob::given, C,D> pABgCD;
+};
+
+
+
+TEST_F(Distribution, DistributionProperties)
+{
   prob::distribution<double,X> pX(X(10));
   prob::distribution<double,X,prob::given,Y,Z> pXgYZ(X(10)|Y(5),Z(7));
 
@@ -37,7 +59,7 @@ TEST(Distribution, DistributionProperties)
 }
 
 // Distribution Assignment
-TEST(Distribution, DistributionAssignment)
+TEST_F(Distribution, DistributionAssignment)
 {
   Eigen::MatrixXd mAB;
   Eigen::MatrixXd mABgC;
@@ -79,7 +101,7 @@ TEST(Distribution, DistributionAssignment)
 }
 
 // Reshape
-TEST(Distribution, DistributionReshape)
+TEST_F(Distribution, DistributionReshape)
 {
   prob::distribution<double,X> pX(X(10));
   prob::distribution<double,X,prob::given,Y,Z> pXgYZ(X(10)|Y(5),Z(7));
@@ -107,27 +129,159 @@ TEST(Distribution, DistributionReshape)
 }
 
 // Value access
+TEST_F(Distribution, ValueAccess)
+{
+
+  for(A a = 0; a < A::extent();a++)
+      for(B b = 0; b < B::extent();b++)
+        EXPECT_EQ(pAB(a,b), prob::read_index<A>::read(a) *B::extent() + prob::read_index<B>::read(b));
+
+  for(A a = 0; a < A::extent();a++)
+      for(B b = 0; b < B::extent();b++)
+        EXPECT_EQ(pAB.prob_ref(a,b), prob::read_index<A>::read(a) *B::extent() + prob::read_index<B>::read(b));
+
+  for(A a = 0; a < A::extent();a++)
+      for(B b = 0; b < B::extent();b++)
+        for(C c = 0; c < C::extent();c++)
+          for(D d = 0; d < D::extent();d++)
+            EXPECT_EQ(pABgCD(a,b|c,d), prob::read_index<A>::read(a) * prob::read_index<B>::read(b) *
+              prob::read_index<C>::read(c) * prob::read_index<D>::read(d));
+
+  for(A a = 0; a < A::extent();a++)
+      for(B b = 0; b < B::extent();b++)
+        for(C c = 0; c < C::extent();c++)
+          for(D d = 0; d < D::extent();d++)
+            EXPECT_EQ(pABgCD.prob_ref(a,b|c,d), prob::read_index<A>::read(a) * prob::read_index<B>::read(b) *
+              prob::read_index<C>::read(c) * prob::read_index<D>::read(d));
+
+  EXPECT_EQ(pAB.prob_read_or_zero(A(A::extent()),B(B::extent())), 0);
+}
+
 
 // Posterior access
+TEST_F(Distribution, PosteriorAccess)
+{
+  for(A a = 0; a < A::extent();a++)
+      for(B b = 0; b < B::extent();b++)
+        for(C c = 0; c < C::extent();c++)
+          for(D d = 0; d < D::extent();d++)
+            EXPECT_EQ(pABgCD.posterior_distribution(c,d)(a,b), prob::read_index<A>::read(a) * prob::read_index<B>::read(b) *
+              prob::read_index<C>::read(c) * prob::read_index<D>::read(d));
 
-// Index iteration
+  for(A a = 0; a < A::extent();a++)
+      for(B b = 0; b < B::extent();b++)
+        for(C c = 0; c < C::extent();c++)
+          for(D d = 0; d < D::extent();d++)
+            EXPECT_EQ(pABgCD.posterior_distribution(c,d).prob_ref(a,b), prob::read_index<A>::read(a) * prob::read_index<B>::read(b) *
+              prob::read_index<C>::read(c) * prob::read_index<D>::read(d));
+}
 
-// Normalization
 
-// Sum
+TEST_F(Distribution, NormalizationAndSum)
+{
+  pABgCD.setConstant(1.0);
 
-// Sum by conditional
+  for(A a = 0; a < A::extent();a++)
+    for(B b = 0; b < B::extent();b++)
+      for(C c = 0; c < C::extent();c++)
+        for(D d = 0; d < D::extent();d++)
+          EXPECT_EQ(pABgCD(a,b|c,d), 1.0);
+
+  pABgCD.normalize();
+
+  double n = 1.0 / (A::extent()*B::extent());
+
+  for(A a = 0; a < A::extent();a++)
+    for(B b = 0; b < B::extent();b++)
+      for(C c = 0; c < C::extent();c++)
+        for(D d = 0; d < D::extent();d++)
+          EXPECT_EQ(pABgCD(a,b|c,d), n);
+
+  pABgCD.setRandom();
+
+  for(A a = 0; a < A::extent();a++)
+    for(B b = 0; b < B::extent();b++)
+      for(C c = 0; c < C::extent();c++)
+        for(D d = 0; d < D::extent();d++)
+          if(pABgCD(a,b|c,d) < 0)
+            pABgCD(a,b|c,d) = -pABgCD(a,b|c,d);
+
+  pABgCD.normalize();
+
+  for(C c = 0; c < C::extent();c++)
+    for(D d = 0; d < D::extent();d++)
+      EXPECT_LT(abs(pABgCD.posterior_distribution(c,d).sum()-1), 1e-20);
+
+  EXPECT_LT((pABgCD.sum_by_conditional() - Eigen::RowVectorXd::Ones(C::extent() * D::extent())).sum(), 1e-20);
+
+  for(C c = 0; c < C::extent();c++)
+    for(D d = 0; d < D::extent();d++)
+      EXPECT_LT(abs(pABgCD.posterior_distribution(c,d).sum()-1), 1e-20);
+
+}
 
 // Map
 
-// Map copy
+TEST_F(Distribution, Map)
+{
+  pABgCD.map([] (double p) { return p*p; });
 
-// Map by conditional
+  pABgCD.each_index([&] (const A& a, const B& b, prob::given g, const C& c, const D& d)
+      {
+        double p = prob::read_index<A>::read(a) * prob::read_index<B>::read(b) *
+                    prob::read_index<C>::read(c) * prob::read_index<D>::read(d);
 
-// Map copy by conditional
+        EXPECT_EQ(pABgCD(a,b|c,d), p*p );
+      });
 
-// Grouped map sum
+  prob::distribution<double,A,B, prob::given, C,D> qABgCD;
 
-// Grouped sum
+  qABgCD = pABgCD.map_copy([] (double p) { return sqrt(p); });
 
+  qABgCD.each_index([&] (const A& a, const B& b, prob::given g, const C& c, const D& d)
+      {
+        double p = prob::read_index<A>::read(a) * prob::read_index<B>::read(b) *
+                    prob::read_index<C>::read(c) * prob::read_index<D>::read(d);
+
+        EXPECT_EQ(qABgCD(a,b|c,d), p );
+      });
+}
+
+
+TEST_F(Distribution, MapConditional)
+{
+  pABgCD.setConstant(1.0);
+  pABgCD.map_by_conditional([] (prob::distribution<double,A,B> &&d) { d(A(0),B(0)) = 0; d.normalize(); return d; });
+
+  double p =  A::extent() * B::extent() - 1;
+
+  pABgCD.each_index([&] (const A& a, const B& b, prob::given g, const C& c, const D& d)
+      {
+        if(a==0 && b==0)
+          EXPECT_EQ(pABgCD(a,b|c,d), 0 );
+        else
+          EXPECT_LT(abs(pABgCD(a,b|c,d)-1/p), 1e-20);
+
+      });
+
+  prob::distribution<double,A,B, prob::given, C,D> qABgCD;
+
+  pABgCD.setConstant(1.0);
+  qABgCD = pABgCD.map_copy_by_conditional([] (prob::distribution<double,A,B> &&d) { d(A(0),B(0)) = 0; d.normalize(); return d; });
+
+  qABgCD.each_index([&] (const A& a, const B& b, prob::given g, const C& c, const D& d)
+      {
+        EXPECT_EQ(pABgCD(a,b|c,d), 1 );
+
+        if(a==0 && b==0)
+          EXPECT_EQ(qABgCD(a,b|c,d), 0 );
+        else
+          EXPECT_LT(abs(qABgCD(a,b|c,d)-1/p), 1e-20);
+      });
+}
+
+TEST_F(Distribution, GroupedMapSum)
+{
+
+}
 // Output / Input

@@ -232,7 +232,7 @@ TEST(Iterator, IndexIteratorTest)
   int _c = 0;
   int _d = 0;
 
-  auto f = [&_a, &_b, &_c, &_d] (const A& a, const B& b, const prob::given& g, const C& c, const B& d)
+  auto f = [&_a, &_b, &_c, &_d] (const A& a, const B& b, const prob::given& g, const C& c, const D& d)
   {
     EXPECT_EQ(prob::read_index<A>::read(a), _a);
     EXPECT_EQ(prob::read_index<B>::read(b), _b);
@@ -275,7 +275,7 @@ TEST(Iterator, ReverseIndexIteratorTest)
   int _c = 0;
   int _d = 0;
 
-  auto f = [&_a, &_b, &_c, &_d] (const A& a, const B& b, const prob::given& g, const C& c, const B& d)
+  auto f = [&_a, &_b, &_c, &_d] (const A& a, const B& b, const prob::given& g, const C& c, const D& d)
   {
     EXPECT_EQ(prob::read_index<A>::read(a), _a);
     EXPECT_EQ(prob::read_index<B>::read(b), _b);

@@ -1136,7 +1136,7 @@ namespace prob
 		 * This method returns a distribution of the same type.
 		 */
 		template<typename F>
-		void map_copy_by_conditional(F&& f) const
+		distribution map_copy_by_conditional(F&& f) const
 		{
 			matrix_type mapped(matrix_type::rows(), matrix_type::cols());
 			for(unsigned i=0;i<matrix_type::rows();++i)

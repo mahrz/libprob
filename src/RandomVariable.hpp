@@ -29,10 +29,12 @@
 #define RVAR(x) struct x : public prob::random_event \
   { x(int ix) : prob::random_event(ix) {}		\
     x() : prob::random_event() {}	\
-    x(const random_event& other) : prob::random_event(other._val) {};	\
-    template<typename B> \
-    prob::_given<x,B> operator |(const B& b) const	\
-    { return prob::_given<x,B>(*this,b);}		\
+    x(const x& other) : prob::random_event(other._val) {};	\
+    template<typename _T> \
+    static x cast(const _T& other) { return x(other._val); } \
+    template<typename _T> \
+    prob::_given<x,_T> operator |(const _T& _t) const	\
+    { return prob::_given<x,_T>(*this,_t);}		\
     static constexpr int extent() { return 1; };	\
     static constexpr bool static_rvar() { return false; }; \
     static std::string label() { return std::string(#x); };	\
@@ -41,10 +43,12 @@
 #define RVAR_STATIC(x,e) struct x : public prob::random_event \
   { x(int ix) : prob::random_event(ix) {}	\
     x() : prob::random_event() {}	\
-    x(const random_event& other) : prob::random_event(other._val) {}; \
-    template<typename B> \
-      prob::_given<x,B> operator |(const B& b) const \
-    { return prob::_given<x,B>(*this,b);}	\
+    x(const x& other) : prob::random_event(other._val) {}; \
+    template<typename _T> \
+    static x cast(const _T& other) { return x(other._val); } \
+    template<typename _T> \
+    prob::_given<x,_T> operator |(const _T& _t) const  \
+    { return prob::_given<x,_T>(*this,_t);}   \
     static constexpr int extent() { return e; }; \
     static constexpr bool static_rvar() { return true; }; \
     static std::string label() { return std::string(#x); };	\
@@ -291,39 +295,33 @@ namespace prob
     int _val;
 
     template<typename B>
-    _given<random_event, B> operator |(const B& b) const
+    B operator +(const B& b) const
     {
-      return _given<random_event, B>(*this, b);
+      return B(_val + read_index<B>::read(b));
     }
 
     template<typename B>
-    random_event operator +(const B& b) const
+    B operator -(const B& b) const
     {
-      return random_event(_val + read_index<B>::read(b));
+      return B(_val - read_index<B>::read(b));
     }
 
     template<typename B>
-    random_event operator -(const B& b) const
+    B operator *(const B& b) const
     {
-      return random_event(_val - read_index<B>::read(b));
+      return B(_val * read_index<B>::read(b));
     }
 
     template<typename B>
-    random_event operator *(const B& b) const
+    B operator /(const B& b) const
     {
-      return random_event(_val * read_index<B>::read(b));
+      return B(_val / read_index<B>::read(b));
     }
 
     template<typename B>
-    random_event operator /(const B& b) const
+    B operator %(const B& b) const
     {
-      return random_event(_val / read_index<B>::read(b));
-    }
-
-    template<typename B>
-    random_event operator %(const B& b) const
-    {
-      return random_event(_val % read_index<B>::read(b));
+      return B(_val % read_index<B>::read(b));
     }
 
     random_event&
@@ -362,28 +360,28 @@ namespace prob
 		}
 
     template<typename B>
-		random_event operator -=(const B& b)
+    random_event operator -=(const B& b)
 		{
       _val -= read_index<B>::read(b);
       return *this;
 		}
 
     template<typename B>
-		random_event operator *=(const B& b)
+    random_event operator *=(const B& b)
 		{
       _val *= read_index<B>::read(b);
       return *this;
 		}
 
     template<typename B>
-		random_event operator /=(const B& b)
+    random_event operator /=(const B& b)
 		{
       _val /= read_index<B>::read(b);
       return *this;
 		}
 
     template<typename B>
-		random_event operator %=(const B& b)
+    random_event operator %=(const B& b)
 		{
       _val %= read_index<B>::read(b);
       return *this;
