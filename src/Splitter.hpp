@@ -446,7 +446,7 @@ namespace prob
     template<typename ...T, template<typename ...> class U>
     struct inject_given<U<T...>, true>
     {
-      typedef U<T..., given> type;
+      typedef U<given,T...> type;
       typedef U<given,T...> last_type;
     };
 

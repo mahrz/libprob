@@ -282,6 +282,32 @@ TEST_F(Distribution, MapConditional)
 
 TEST_F(Distribution, GroupedMapSum)
 {
+  prob::distribution<double,X,Y,prob::given,Z,W> pXYgZW(X(2),Y(2)|Z(2),W(2));
 
+  for(Z z = 0; z < 2; z++)
+  {
+    for(W w = 0; w < 2; w++)
+    {
+      pXYgZW(X(0),Y(0)|z,w) = 0.2;
+      pXYgZW(X(1),Y(0)|z,w) = 0.3;
+      pXYgZW(X(0),Y(1)|z,w) = 0.1;
+      pXYgZW(X(1),Y(1)|z,w) = 0.4;
+    }
+  }
+
+  auto pYgZW = pXYgZW.grouped_sum<1,2,3>();
+
+  pYgZW.each_index([&pYgZW] (const Y& y, prob::given, const Z& z, const W& w)
+  {
+        EXPECT_EQ(pYgZW(y|z,w), 0.5);
+  });
+
+  auto pXgZW = pXYgZW.grouped_sum<0,2,3>();
+
+  pXgZW.each_conditional_index([&pXgZW] (const Z& z, const W& w)
+  {
+        EXPECT_LT(abs(pXgZW(X(0)|z,w)-0.3), 1e-20);
+        EXPECT_LT(abs(pXgZW(X(1)|z,w)-0.7), 1e-20);
+  });
 }
 // Output / Input
