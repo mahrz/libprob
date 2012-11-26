@@ -43,6 +43,13 @@ std::ostream& operator<<(std::basic_ostream<Ch,Tr>& os,
 {
   return os << r._val;
 }
+
+template<class Ch, class Tr, class... Args>
+std::ostream& operator<<(std::basic_ostream<Ch,Tr>& os,
+       prob::given const& g)
+{
+  return os << "|";
+}
 /** @endcond */
 
 #endif /* _FORMATTERS_H_ */

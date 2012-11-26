@@ -309,5 +309,61 @@ TEST_F(Distribution, GroupedMapSum)
         EXPECT_LT(abs(pXgZW(X(0)|z,w)-0.3), 1e-20);
         EXPECT_LT(abs(pXgZW(X(1)|z,w)-0.7), 1e-20);
   });
+
 }
+
 // Output / Input
+TEST_F(Distribution, InputOutput)
+{
+  prob::distribution<double,X,Y,prob::given,Z,W> pXYgZW(X(2),Y(2)|Z(2),W(2));
+  prob::distribution<double,X,Y,prob::given,Z,W> qXYgZW(X(2),Y(2)|Z(2),W(2));
+
+  qXYgZW.setZero();
+
+  pXYgZW(X(0), Y(0) | Z(0), W(0)) = 0.451703;
+  pXYgZW(X(1), Y(0) | Z(0), W(0)) = 0.267738;
+  pXYgZW(X(0), Y(1) | Z(0), W(0)) = 0.210834;
+  pXYgZW(X(1), Y(1) | Z(0), W(0)) = 0.0697242;
+  pXYgZW(X(0), Y(0) | Z(1), W(0)) = 0.392615;
+  pXYgZW(X(1), Y(0) | Z(1), W(0)) = 0.170774;
+  pXYgZW(X(0), Y(1) | Z(1), W(0)) = 0.338111;
+  pXYgZW(X(1), Y(1) | Z(1), W(0)) = 0.0984997;
+  pXYgZW(X(0), Y(0) | Z(0), W(1)) = 0.140682;
+  pXYgZW(X(1), Y(0) | Z(0), W(1)) = 0.178517;
+  pXYgZW(X(0), Y(1) | Z(0), W(1)) = 0.0761279;
+  pXYgZW(X(1), Y(1) | Z(0), W(1)) = 0.604673;
+  pXYgZW(X(0), Y(0) | Z(1), W(1)) = 0.297834;
+  pXYgZW(X(1), Y(0) | Z(1), W(1)) = 0.379176;
+  pXYgZW(X(0), Y(1) | Z(1), W(1)) = 0.0370919;
+  pXYgZW(X(1), Y(1) | Z(1), W(1)) = 0.285898;
+
+  std::string output = "Conditional Distribution\n\
+X Y | Z W\n\
+2 2 | 2 2\n\
+0 0 | 0 0 : 0.451703\n\
+1 0 | 0 0 : 0.267738\n\
+0 1 | 0 0 : 0.210834\n\
+1 1 | 0 0 : 0.0697242\n\
+0 0 | 1 0 : 0.392615\n\
+1 0 | 1 0 : 0.170774\n\
+0 1 | 1 0 : 0.338111\n\
+1 1 | 1 0 : 0.0984997\n\
+0 0 | 0 1 : 0.140682\n\
+1 0 | 0 1 : 0.178517\n\
+0 1 | 0 1 : 0.0761279\n\
+1 1 | 0 1 : 0.604673\n\
+0 0 | 1 1 : 0.297834\n\
+1 0 | 1 1 : 0.379176\n\
+0 1 | 1 1 : 0.0370919\n\
+1 1 | 1 1 : 0.285898\n";
+
+  std::stringstream s;
+  s << pXYgZW;
+  EXPECT_EQ(output, s.str());
+
+  qXYgZW = prob::distribution<double,X,Y,prob::given,Z,W>::load(s);
+
+  EXPECT_EQ(qXYgZW, pXYgZW);
+}
+
+

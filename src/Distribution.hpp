@@ -145,7 +145,7 @@ namespace prob
 			{
 				int h;
 				in >> h;
-				return cons(H(h), tuple_read_impl<T...>::read(in));
+				return util::tuple::cons(H(h), tuple_read_impl<T...>::read(in));
 			}
 		};
 
@@ -155,7 +155,9 @@ namespace prob
 			static std::tuple<given,T...>  read(std::istream& in)
 			{
 				in.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
-				return cons(given(1), tuple_read_impl<T...>::read(in));
+				in.ignore(std::numeric_limits<std::streamsize>::max(), '|');
+        in.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
+				return util::tuple::cons(given(1), tuple_read_impl<T...>::read(in));
 			}
 		};
 
@@ -438,8 +440,6 @@ namespace prob
 			dist.reshape_dimensions(row_extents, col_extents);
 			dist.setZero();
 
-			bool stop = false;
-
 			do
 			{
 				auto full_index = core::tuple_read<T...>(in);
@@ -453,8 +453,15 @@ namespace prob
 																								core::splitter<T...>::posteriors()+1,
 																								sizeof...(T)>::type());
 
-				stop = !(in >> dist.prob_ref_via_tuple(row_index, col_index));
-			} while(!stop);
+				in.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
+        in.ignore(std::numeric_limits<std::streamsize>::max(), ':');
+        in.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
+
+				Scalar v;
+				if(!(in>>v))
+				  break;
+				dist.prob_ref_via_tuple(row_index, col_index) = v;
+			} while(true);
 
 			return dist;
     }

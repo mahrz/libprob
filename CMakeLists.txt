@@ -56,3 +56,11 @@ add_test(splitter test_splitter)
 add_executable(test_distribution test/Tests.cpp test/DistributionTest.cpp)
 target_link_libraries(test_distribution gtest gtest_main)
 add_test(distribution test_distribution)
+
+add_executable(test_algebra test/Tests.cpp test/AlgebraTest.cpp)
+target_link_libraries(test_algebra gtest gtest_main)
+add_test(algebra test_algebra)
+
+add_executable(test_information test/Tests.cpp test/InformationTest.cpp)
+target_link_libraries(test_information gtest gtest_main)
+add_test(information test_information)

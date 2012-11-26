@@ -9,6 +9,7 @@
  * @file Decomposition	.hpp
  *
  * @brief Different decomposition/redundancy measures and helper functions
+ * @todo This is experimental and not tested
  *
  */
 
@@ -21,7 +22,7 @@ namespace prob
      * @defgroup DECOMP Decomposition
      * @ingroup IT
      *
-     * @brief Information decomposition functions
+     * @brief Information decomposition functions (EXPERIMENTAL POSSIBLY BROKEN!!!)
      *
      * @{
      */

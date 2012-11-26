@@ -66,7 +66,7 @@ namespace prob
 
         return result;
       }
-    }; 
+    };
 
     template<template<typename ...> class V,
     typename Scalar,
@@ -78,10 +78,10 @@ namespace prob
 
       static return_type join(const V<Scalar, A...>& distA, const V<Scalar, B...>& distB)
       {
-        int rows = 1;
-        int cols = distA.cols() * distB.cols();
         auto col_extents = util::tuple::concat(distA.col_extents(),distB.col_extents());
-        return_type result(rows, cols, std::make_tuple<>(), col_extents);
+        return_type result;
+
+        result.reshape_dimensions(std::make_tuple<>(), col_extents);
 
         result.each_index(
             [&] (const A&... a, const B&... b)
