@@ -1,0 +1,5 @@
+<map id="prob::distribution::distribution" name="prob::distribution::distribution">
+<area shape="rect" id="node3" href="$namespaceprob_1_1util_1_1tuple.html#a584430ef3c8c36a28fc7f78181e2d03a" title="prob::util::tuple::fold" alt="" coords="174,5,311,32"/>
+<area shape="rect" id="node5" href="$classprob_1_1distribution.html#a65688371b7bf210e2a23c31eff38fb5b" title="Alias for conditional_extents." alt="" coords="183,57,302,98"/>
+<area shape="rect" id="node7" href="$classprob_1_1distribution.html#a2a4c3140b3bf2ae48923ede6343a483c" title="Alias for posterior_extents." alt="" coords="183,122,302,163"/>
+</map>

@@ -1,0 +1,5 @@
+var structprob_1_1it_1_1core_1_1mutual__information__impl_3_01_v_3_01_a_8_8_8_4_00_01_v_3_01_b_8_8_8_4_00_01_scalar_01_4 =
+[
+    [ "mutual_information", "structprob_1_1it_1_1core_1_1mutual__information__impl_3_01_v_3_01_a_8_8_8_4_00_01_v_3_01_b_8_8_8_4_00_01_scalar_01_4.html#a6d3c00535864c46788b3200abcde62a9", null ],
+    [ "mutual_information", "structprob_1_1it_1_1core_1_1mutual__information__impl_3_01_v_3_01_a_8_8_8_4_00_01_v_3_01_b_8_8_8_4_00_01_scalar_01_4.html#a5e75aea28f2871efa635db8873ef35ad", null ]
+];
