@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Libprob by mahrz</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Libprob</h1>
+        <p>Discrete Probability and Information Theory Library</p>
+        <p class="view"><a href="https://github.com/mahrz/libprob">View the Project on GitHub <small>mahrz/libprob</small></a></p>
+        <ul>
+          <li><a href="https://github.com/mahrz/libprob/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/mahrz/libprob/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/mahrz/libprob">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>libprob</h1>
+
+<p>Libprob is a discrete probability distribution library for C++11 based on <a href="http://eigen.tuxfamily.org/">Eigen</a>. The library uses variadic templates to encapsulate the matrix storage of multivariate probability distributions. Additional support for basic algebraic operations like joining, marginalization or Bayes' rules is provided, as well as information theoretic measures like entropy and mutual information.</p>
+
+<h2>Installation</h2>
+
+<p>You will need to have <a href="http://eigen.tuxfamily.org/">Eigen</a> installed on your computer to use the library. Cmake as well as doxygen are required to build the tests and documentation. Check out the repository or download the repository as a zip and extract it to a directory of your preference. Lets suppose the repository resides in your home directory in a folder named <code>libprob</code>, then create a build directory on the same level as the repository and execute the following commands:</p>
+
+<div class="highlight"><pre>~&gt; mkdir libprob_build
+~&gt; <span class="nb">cd </span>libprob_build
+~/libprob_build&gt; cmake ../libprob
+~/libprob_build&gt; make <span class="nb">test</span>
+~/libprob_build&gt; make doc
+~/libprob_build&gt; make install
+</pre></div>
+
+<p>This will compile and execute the tests, build the documentation in the repository folder and installs the header only library into your include directory (which can be set via <code>CMAKE_INSTALL_PREFIX</code>). If you want to use the experimental information decomposition features (which are not tested yet and possibly broken) consult the documentation. These features require the <a href="http://ab-initio.mit.edu/wiki/index.php/NLopt">nlopt</a> optimization library to be present on your system.</p>
+
+<h2>Examples</h2>
+
+<p>Here is a simple example of the look &amp; feel of the library, for more examples have a look at the testcases and the documentation.</p>
+
+<div class="highlight"><pre><span class="k">using</span> <span class="k">namespace</span> <span class="n">prob</span><span class="p">;</span>
+
+<span class="n">RVAR_STATIC</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">RVAR_STATIC</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">RVAR_STATIC</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="p">[...]</span>
+
+<span class="n">distribution</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">given</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">W</span><span class="o">&gt;</span> <span class="n">p</span><span class="p">;</span>
+
+<span class="n">W</span> <span class="n">w</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">wn</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="n">A</span> <span class="n">a</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="n">S</span> <span class="n">s</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="n">init</span><span class="o">::</span><span class="n">random</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">gen</span><span class="p">);</span>
+
+<span class="n">p</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">a</span> <span class="o">|</span> <span class="n">s</span><span class="p">,</span> <span class="n">wn</span><span class="p">)</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span>
+
+<span class="n">p</span><span class="p">.</span><span class="n">normalize</span><span class="p">();</span>
+
+<span class="n">p</span><span class="p">.</span><span class="n">each_index</span><span class="p">([]</span> <span class="p">(</span><span class="n">W</span> <span class="n">w</span><span class="p">,</span> <span class="n">A</span> <span class="n">a</span><span class="p">,</span> <span class="n">prob</span><span class="o">::</span><span class="n">given</span><span class="p">,</span> <span class="n">S</span> <span class="n">s</span><span class="p">,</span> <span class="n">W</span> <span class="n">wp</span><span class="p">)</span>
+<span class="p">{</span> 
+  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">"Index "</span> <span class="o">&lt;&lt;</span> <span class="n">w</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="s">"|"</span>
+                        <span class="o">&lt;&lt;</span> <span class="n">s</span> <span class="o">&lt;&lt;</span> <span class="s">" "</span> <span class="o">&lt;&lt;</span> <span class="n">wp</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">});</span>
+
+</pre></div>
+
+<h2>Documentation</h2>
+
+<p>The documentation can be built locally using doxygen, for a documentation of the latest release look here.</p>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/mahrz">mahrz</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
