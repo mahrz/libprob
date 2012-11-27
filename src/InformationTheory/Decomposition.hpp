@@ -1,9 +1,13 @@
 #ifndef _DECOMPOSITION_H_
 #define _DECOMPOSITION_H_
 
+#ifdef PROB_EXPERIMENTAL
+
 #define PROB_NL_PRECISION 1e-5
 
+#ifdef PROB_REDUNDANT_INFORMATION
 #include <nlopt.hpp>
+#endif
 
 /**
  * @file Decomposition	.hpp
@@ -31,6 +35,8 @@ namespace prob
     {
       namespace core
       {
+
+#ifdef PROB_REDUNDANT_INFORMATION
         double row_sum_one(const std::vector<double> &x,
             std::vector<double> &grad, void *data)
         {
@@ -155,11 +161,13 @@ namespace prob
 
         template<typename ...T>
         struct icm_information_impl;
+#endif
 
         template<typename ...T>
         struct minimal_information_impl;
         /** @endcond */
 
+#ifdef PROB_REDUNDANT_INFORMATION
         template<template<typename ...> class V,
         typename ... X,
         typename ... Y,
@@ -371,6 +379,7 @@ namespace prob
         }
 
       };
+#endif
 
         template<template<typename ...
       > class V,
@@ -432,6 +441,7 @@ namespace prob
 
         }
 
+#ifdef PROB_REDUNDANT_INFORMATION
       /**
        * Calculate the redundant information defined as
        * @f[ I_{ \operatorname{red}}(Z;X,Y) = \min \{ I^\pi_Z(X \searrow Y), I^\pi_Z(Y \searrow X) \}  @f]
@@ -482,6 +492,7 @@ namespace prob
             typename DistX::posterior_type, typename DistY::posterior_type,
             typename DistZ::posterior_type>::icm_information(dXYgZ, dZ);
       }
+#endif
 
       /**
        * Calculate the minimal information defined as
@@ -509,4 +520,7 @@ namespace prob
     /** @} */
   }
 }
+
+#endif
+
 #endif /* _DECOMPOSITION_H_ */

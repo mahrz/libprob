@@ -1,4 +1,8 @@
 #include <iostream>
+
+#define PROB_EXPERIMENTAL
+#define PROB_REDUNDANT_INFORMATION
+
 #include "prob.hpp"
 
 using namespace std;
