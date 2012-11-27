@@ -1,8 +1,11 @@
 /*! @page Introduction
 
-This is the documentation for libprob a C++11 probability and information
-theory library.
 
-Bladiblub
+Libprob is a discrete probability distribution library for C++11 based on Eigen. The library uses variadic 
+templates to encapsulate the matrix storage of multivariate probability distributions. Additional support for 
+basic algebraic operations like joining, marginalization or Bayes' rules is provided, as well as information 
+theoretic measures like entropy and mutual information.
+
+
 
 */
