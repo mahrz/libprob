@@ -56,5 +56,5 @@ p.each_index([] (W w, A a, prob::given, S s, W wp)
 Documentation
 -------------
 
-The documentation can be built locally using doxygen, for a documentation of the latest release look here.
+The documentation can be built locally using doxygen, for a documentation of the latest release look [here](http://mahrz.github.com/libprob/docs/).
 
