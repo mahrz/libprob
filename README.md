@@ -6,7 +6,7 @@ Libprob is a discrete probability distribution library for C++11 based on [Eigen
 Installation
 ------------
 
-You will need to have [Eigen](http://eigen.tuxfamily.org/) installed on your computer to use the library. Cmake as well as doxygen are required to build the tests and documentation. Check out the repository or download the repository as a zip and extract it to a directory of your preference. Lets suppose the repository resides in your home directory in a folder named `libprob`, then create a build directory on the same level as the repository and execute the following commands:
+You will need to have [Eigen](http://eigen.tuxfamily.org/) and gcc 4.7 (std=c++11 is needed) installed on your computer to use the library. Cmake, gtest as well as doxygen are required to build the tests and documentation. Check out the repository or download the repository as a zip and extract it to a directory of your preference. Then download [gtest-1.6](http://code.google.com/p/googletest/downloads/list) and unpack the `gtest-1.6` folder to the libprob folder. Lets suppose the repository resides in your home directory in a folder named `libprob`, then create a build directory on the same level as the repository and execute the following commands:
 
 ```sh
 ~> mkdir libprob_build
