@@ -316,7 +316,7 @@ namespace prob
       assert(dP.size() == dQ.size());
 
       typename Dist::scalar div = 0;
-      for (int x = 0; x < dP.cols(); ++x)
+      for (int x = 0; x < dP.size(); ++x)
         div += xlogxovery(dP.coeffRef(x), dQ.coeffRef(x));
 
       return div / log_of_2<typename Dist::scalar>();

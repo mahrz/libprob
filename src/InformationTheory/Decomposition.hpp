@@ -3,7 +3,7 @@
 
 #ifdef PROB_EXPERIMENTAL
 
-#define PROB_NL_PRECISION 1e-5
+#define PROB_NL_PRECISION 1e-4
 
 #ifdef PROB_REDUNDANT_INFORMATION
 #include <nlopt.hpp>
@@ -38,10 +38,10 @@ namespace prob
 
 #ifdef PROB_REDUNDANT_INFORMATION
         double row_sum_one(const std::vector<double> &x,
-            std::vector<double> &grad, void *data)
+			   std::vector<double> &grad, void *data)
         {
           std::tuple<unsigned, unsigned> * data_int =
-              reinterpret_cast<std::tuple<unsigned, unsigned>*>(data);
+	    reinterpret_cast<std::tuple<unsigned, unsigned>*>(data);
           unsigned row = std::get<0> (*data_int);
           unsigned cols = std::get<1> (*data_int);
 
@@ -55,11 +55,11 @@ namespace prob
           for (unsigned i = row * cols; i < (row + 1) * cols; i++)
             sum += x[i];
 
-          return sum - 1;
+          return sum-1;
         }
 
         double sum_one(const std::vector<double> &x, std::vector<double> &grad,
-            void *data)
+		       void *data)
         {
 
           if (!grad.empty())
@@ -71,37 +71,66 @@ namespace prob
           for (unsigned i = 0; i < x.size(); i++)
             sum += x[i];
 
-          return sum - 1;
+          return sum-1;
         }
 
         template<typename DistZ>
         double red_objective(const std::vector<double> &x,
-            std::vector<double> &grad, void *data)
+			     std::vector<double> &grad, void *data)
         {
           unsigned dim = x.size();
-          std::tuple<DistZ const * const, std::vector<DistZ> const * const >* data_tuple =
-              reinterpret_cast<std::tuple<DistZ const * const,
-                  std::vector<DistZ> const * const >*>(data);
+          std::tuple<DistZ const * const, 
+		     std::vector<DistZ> const * const >* data_tuple =
+	    reinterpret_cast<std::tuple<DistZ const * const,
+					std::vector<DistZ> const * const >*>(data);
+
+	  const DistZ * p = std::get<0> (*data_tuple);
+	  const std::vector<DistZ> * cc = std::get<1> (*data_tuple);
 
           DistZ q(std::get<1> (*data_tuple)->front());
           q.setZero();
 
+	  Eigen::VectorXd x_(dim+1);
+	  x_.setZero();
+
           double sum = 1;
           for (unsigned i = 0; i < dim; i++)
           {
-            q += x[i] * (*std::get<1> (*data_tuple))[i];
-            sum -= x[i];
+	    if(x[i] > 0)
+	    {
+	      x_[i] = x[i];
+	      sum -= x[i];
+	    }
           }
-          q += sum * (*std::get<1> (*data_tuple))[dim];
+	  if(sum>0)
+	    x_[dim] = sum;
+	  x_ /= x_.sum();
 
-          return it::kl_divergence((*std::get<0> (*data_tuple)), q);
+          for(unsigned i=0; i<=dim; i++)
+          {
+	    q += x_[i] * (*cc)[i];
+	  }
 
+          if (!grad.empty())
+          {
+            for(unsigned i = 0; i<x.size(); i++)
+	    {
+              grad[i] = 0;
+	      for(unsigned j=0; j<p->size(); j++)
+	      {
+		if((*cc)[i][j] * (*p)[j] > 0 && q[j] > 0)
+		  grad[i] += - (*cc)[i][j] * (*p)[j] / q[j];
+	      }
+	    }
+          }
+
+          return it::kl_divergence(*p, q);
         }
 
         template<typename DistXYgZ, typename DistZ, typename DistZgZ,
-            typename DistXgZ, typename DistYgZ, size_t sX, size_t sY, size_t sZ>
+		 typename DistXgZ, typename DistYgZ, size_t sX, size_t sY, size_t sZ>
         double icm_objective(const std::vector<double> &x,
-            std::vector<double> &grad, void *data)
+			     std::vector<double> &grad, void *data)
         {
           typedef std::tuple<DistXYgZ const * const, DistZ const * const > data_type;
 
@@ -124,16 +153,26 @@ namespace prob
 
           auto dXYZngZ = join_conditionals(*dXYgZ, dZngZ);
 
-          typedef typename util::compile_time_list::iota_0<sX + sY + sZ>::type index_typeXYZ;
+          typedef typename util::compile_time_list::iota_0<sX + sY + sZ>::type 
+	    index_typeXYZ;
           auto dXYZn = marginalize(uncondition(dXYZngZ, *dZ), index_typeXYZ());
-          typedef typename util::compile_time_list::iota_n<sX + sY, sX + sY + sZ>::type index_typeZ;
-          DistZ dZn = marginalize(dXYZn, index_typeZ());
+         
+	  typedef typename util::compile_time_list::iota_n<sX + sY, 
+							   sX + sY + sZ>::type 
+	    index_typeZ;
+          
+	  DistZ dZn = marginalize(dXYZn, index_typeZ());
 
-          typedef typename util::compile_time_list::iota_n<sX, sX + sY + sZ>::type index_typeYZ;
+          typedef typename util::compile_time_list::iota_n<sX, 
+							   sX + sY + sZ>::type 
+	    index_typeYZ;
           auto dYZn = marginalize(dXYZn, index_typeYZ());
 
           typedef typename util::compile_time_list::join_lists<
-              typename util::compile_time_list::iota_0<sX>::type, index_typeZ>::type index_typeXZ;
+	    typename util::compile_time_list::iota_0<sX>::type, 
+	    index_typeZ>::type 
+	    index_typeXZ;
+
           auto dXZn = marginalize(dXYZn, index_typeXZ());
 
           DistXYgZ dXYgZn;
@@ -148,7 +187,7 @@ namespace prob
           std::cout << dXYgZn << std::endl;
 
           double cmi = conditional_mutual_information(dXYgZn, dXgZn, dYgZn,
-              dZn);
+						      dZn);
 
           std::cout << cmi << std::endl;
 
@@ -169,10 +208,10 @@ namespace prob
 
 #ifdef PROB_REDUNDANT_INFORMATION
         template<template<typename ...> class V,
-        typename ... X,
-        typename ... Y,
-        typename ... Z,
-        typename Scalar>
+		 typename ... X,
+		 typename ... Y,
+		 typename ... Z,
+		 typename Scalar>
         struct redundancy_impl<Scalar, V<X...>, V<Y...>, V<Z...>>
         {
           typedef distribution<Scalar, Z..., given, X...> DistZgX;
@@ -186,9 +225,9 @@ namespace prob
           typedef Eigen::Matrix<double, Eigen::Dynamic, 1> row_vector;
 
           static std::vector<DistZ> project(
-              const std::vector<DistZ>& source,
-              const std::vector<DistZ>& target
-          )
+	    const std::vector<DistZ>& source,
+	    const std::vector<DistZ>& target
+	    )
           {
             std::vector<DistZ> projected;
 
@@ -196,22 +235,22 @@ namespace prob
             std::vector<double> lb(dim,0);
             std::vector<double> ub(dim,1);
 
-            nlopt::opt opt(nlopt::LN_COBYLA, dim);
-
-            opt.set_lower_bounds(lb);
-            opt.set_upper_bounds(ub);
-
-            opt.add_inequality_constraint(sum_one, nullptr, PROB_NL_PRECISION);
-            opt.set_xtol_rel(PROB_NL_PRECISION);
-
             for(const DistZ& p : source)
             {
+	      nlopt::opt opt(nlopt::LN_COBYLA, dim);
+
+	      opt.set_lower_bounds(lb);
+	      opt.set_upper_bounds(ub);
+
+	      opt.add_inequality_constraint(sum_one, nullptr, PROB_NL_PRECISION);
+	      opt.set_xtol_rel(PROB_NL_PRECISION);
+
               std::tuple<DistZ const * const, std::vector<DistZ> const * const>
-              data = std::make_tuple(&p, &target);
+		data = std::make_tuple(&p, &target);
 
               opt.set_min_objective(red_objective<DistZ>, (void*)&data);
 
-              std::vector<double> x(dim, 0.5);
+              std::vector<double> x(dim, 1.0 / target.size());
               double minf;
               opt.optimize(x, minf);
 
@@ -233,11 +272,11 @@ namespace prob
           }
 
           static Scalar redundancy(
-              const DistZgX& dZgX,
-              const DistZgY& dZgY,
-              const DistX& dX,
-              const DistY& dY,
-              const DistZ& dZ)
+	    const DistZgX& dZgX,
+	    const DistZgY& dZgY,
+	    const DistX& dX,
+	    const DistY& dY,
+	    const DistZ& dZ)
           {
             std::vector<DistZ> vdZgX;
             std::vector<DistZ> vdZgY;
@@ -247,16 +286,16 @@ namespace prob
 
             // Extract the conditional distributions
             dZgX.each_conditional_index(
-                [&vdZgX, &dZgX] (const X&... x)
-                {
-                  vdZgX.push_back(dZgX.posterior_distribution(x...));
-                });
+	      [&vdZgX, &dZgX] (const X&... x)
+	      {
+		vdZgX.push_back(dZgX.posterior_distribution(x...));
+	      });
 
             dZgY.each_conditional_index(
-                [&vdZgY, &dZgY] (const Y&... y)
-                {
-                  vdZgY.push_back(dZgY.posterior_distribution(y...));
-                });
+	      [&vdZgY, &dZgY] (const Y&... y)
+	      {
+		vdZgY.push_back(dZgY.posterior_distribution(y...));
+	      });
 
             projected_vdZgX = project(vdZgX, vdZgY);
             projected_vdZgY = project(vdZgY, vdZgX);
@@ -266,62 +305,66 @@ namespace prob
             typename std::vector<DistZ>::iterator pY = projected_vdZgY.begin();
 
             dZgX.each_conditional_index(
-                [&pX, &dZgX, &dX, &dZ, &red_x] (const X&... x)
-                {
-                  if(dX(x...) <= 1e-18)
-                  {
-                    pX++;
-                    return;
-                  }
+	      [&pX, &dZgX, &dX, &dZ, &red_x] (const X&... x)
+	      {
+		if(dX(x...) <= 1e-18)
+		{
+		  pX++;
+		  return;
+		}
 
-                  DistZ dZgx = dZgX.posterior_distribution(x...);
-                  Scalar dx = dX(x...);
+		DistZ dZgx = dZgX.posterior_distribution(x...);
+		Scalar dx = dX(x...);
 
-                  dZ.each_index(
-                      [&pX, &dZgx, &dx, &dZ, &red_x] (const Z&... z)
-                      {
-                        if(dZgx(z...) >= 1e-18)
-                        red_x += dZgx(z...) * dx *
+		dZ.each_index(
+		  [&pX, &dZgx, &dx, &dZ, &red_x] (const Z&... z)
+		  {
+		    if(dZgx(z...) >= 1e-18)
+		    {
+		      red_x += dZgx(z...) * dx *
                         log2_fraction((*pX)(z...),dZ(z...));
-                      }
+		    }
+		  }
                   );
 
-                  pX++;
-                });
+		pX++;
+
+	      });
 
             dZgY.each_conditional_index(
-                [&pY, &dZgY, &dY, &dZ, &red_y] (const Y&... y)
-                {
-                  if(dY(y...) <= 1e-18)
-                  {
-                    pY++;
-                    return;
-                  }
+	      [&pY, &dZgY, &dY, &dZ, &red_y] (const Y&... y)
+	      {
+		if(dY(y...) <= 1e-18)
+		{
+		  pY++;
+		  return;
+		}
 
-                  DistZ dZgy = dZgY.posterior_distribution(y...);
-                  Scalar dy = dY(y...);
+		DistZ dZgy = dZgY.posterior_distribution(y...);
+		Scalar dy = dY(y...);
 
-                  dZ.each_index(
-                      [&pY, &dZgy, &dy, &dZ, &red_y] (const Z&... z)
-                      {
-                        if(dZgy(z...) >= 1e-18)
-                        red_y += dZgy(z...) * dy *
+		dZ.each_index(
+		  [&pY, &dZgy, &dy, &dZ, &red_y] (const Z&... z)
+		  {
+		    if(dZgy(z...) >= 1e-18)
+		      red_y += dZgy(z...) * dy *
                         log2_fraction((*pY)(z...),dZ(z...));
-                      }
+		  }
                   );
 
-                  pY++;
-                });
+		pY++;
+	      });
+	   
 
             return std::min(red_y, red_x);
           }
         };
 
         template<template<typename ...> class V,
-        typename ... X,
-        typename ... Y,
-        typename ... Z,
-        typename Scalar>
+		 typename ... X,
+		 typename ... Y,
+		 typename ... Z,
+		 typename Scalar>
         struct icm_information_impl<Scalar, V<X...>, V<Y...>, V<Z...>>
         {
           typedef distribution<Scalar, X... , Y..., given, Z...> DistXYgZ;
@@ -334,8 +377,8 @@ namespace prob
           typedef distribution<Scalar, Z...> DistZ;
 
           static Scalar icm_information(
-              const DistXYgZ& dXYgZ,
-              const DistZ& dZ)
+	    const DistXYgZ& dXYgZ,
+	    const DistZ& dZ)
           {
 
             unsigned dimZ = dZ.cols();
@@ -353,93 +396,92 @@ namespace prob
             {
               rc.push_back(std::make_tuple(z,dimZ));
               opt.add_equality_constraint(row_sum_one, &rc[z], PROB_NL_PRECISION);
-          }
+	    }
 
-          opt.set_xtol_rel(PROB_NL_PRECISION);
+	    opt.set_xtol_rel(PROB_NL_PRECISION);
 
-          std::tuple<DistXYgZ const * const,
-          DistZ const * const> data =
-          std::make_tuple(&dXYgZ, &dZ);
+	    std::tuple<DistXYgZ const * const,
+		       DistZ const * const> data =
+	      std::make_tuple(&dXYgZ, &dZ);
 
-          opt.set_min_objective(icm_objective<
-              DistXYgZ,
-              DistZ,
-              DistZgZ,
-              DistXgZ,
-              DistYgZ,
-              sizeof...(X),
-              sizeof...(Y),
-              sizeof...(Z)>, (void*)&data);
+	    opt.set_min_objective(icm_objective<
+				  DistXYgZ,
+				  DistZ,
+				  DistZgZ,
+				  DistXgZ,
+				  DistYgZ,
+				  sizeof...(X),
+				  sizeof...(Y),
+				  sizeof...(Z)>, (void*)&data);
 
-          std::vector<double> x(dimZgZ, 1/dimZ);
-          double minf;
-          opt.optimize(x, minf);
+	    std::vector<double> x(dimZgZ, 1/dimZ);
+	    double minf;
+	    opt.optimize(x, minf);
 
-          return Scalar(minf);
-        }
+	    return Scalar(minf);
+	  }
 
-      };
+	};
 #endif
 
-        template<template<typename ...
-      > class V,
-      typename ... X,
-      typename ... Y,
-      typename ... Z,
-      typename Scalar>
-      struct minimal_information_impl<Scalar, V<X...>, V<Y...>, V<Z...>>
-      {
-        typedef distribution<Scalar, X..., given, Z...> DistXgZ;
-        typedef distribution<Scalar, Y..., given, Z...> DistYgZ;
+	template<template<typename ...> class V,
+		 typename ... X,
+		 typename ... Y,
+		 typename ... Z,
+		 typename Scalar>
+	struct minimal_information_impl<Scalar, V<X...>, V<Y...>, V<Z...>>
+	{
+	  typedef distribution<Scalar, X..., given, Z...> DistXgZ;
+	  typedef distribution<Scalar, Y..., given, Z...> DistYgZ;
 
-        typedef distribution<Scalar, X...> DistX;
-        typedef distribution<Scalar, Y...> DistY;
-        typedef distribution<Scalar, Z...> DistZ;
+	  typedef distribution<Scalar, X...> DistX;
+	  typedef distribution<Scalar, Y...> DistY;
+	  typedef distribution<Scalar, Z...> DistZ;
 
-        static Scalar minimal_information(
+	  static Scalar minimal_information(
             const DistXgZ& dXgZ,
             const DistYgZ& dYgZ,
             const DistZ& dZ)
-        {
-          Scalar min_info(0);
+	  {
+	    Scalar min_info(0);
 
-          typedef typename util::compile_time_list::iota_0<sizeof...(X)>::type index_typeX;
-        DistX dX(marginalize(uncondition(dXgZ,dZ), index_typeX()));
+	    typedef typename util::compile_time_list::iota_0<sizeof...(X)>::type index_typeX;
+	    DistX dX(marginalize(uncondition(dXgZ,dZ), index_typeX()));
 
-        typedef typename util::compile_time_list::iota_0<sizeof...(Y)>::type index_typeY;
-        DistY dY(marginalize(uncondition(dYgZ,dZ), index_typeY()));
+	    typedef typename util::compile_time_list::iota_0<sizeof...(Y)>::type index_typeY;
+	    DistY dY(marginalize(uncondition(dYgZ,dZ), index_typeY()));
 
-        dZ.each_index([&] (const Z&... z)
-            {
-              Scalar x_info(0);
-              Scalar y_info(0);
+	    dZ.each_index([&] (const Z&... z)
+			  {
+			    Scalar x_info(0);
+			    Scalar y_info(0);
 
-              DistX dXgz = dXgZ.posterior_distribution(z...);
-              DistY dYgz = dYgZ.posterior_distribution(z...);
+			    DistX dXgz = dXgZ.posterior_distribution(z...);
+			    DistY dYgz = dYgZ.posterior_distribution(z...);
 
-              dX.each_index([&] (const X&... x)
-                  {
-                    x_info += xlogy( dXgz(x...), dXgz(x...) / dX(x...));
-                  });
+			    dX.each_index([&] (const X&... x)
+					  {
+					    x_info += xlogy( dXgz(x...), dXgz(x...) / dX(x...));
+					  });
 
-              x_info /= log_of_2<Scalar>();
+			    x_info /= log_of_2<Scalar>();
 
-              dY.each_index([&] (const Y&... y)
-                  {
-                    y_info += xlogy( dYgz(y...), dYgz(y...) / dY(y...));
-                  });
+			    dY.each_index([&] (const Y&... y)
+					  {
+					    y_info += xlogy( dYgz(y...), dYgz(y...) / dY(y...));
+					  });
 
-              y_info /= log_of_2<Scalar>();
+			    y_info /= log_of_2<Scalar>();
 
-              min_info += dZ(z...) * std::min(x_info, y_info);
-            });
+			    min_info += dZ(z...) * std::min(x_info, y_info);
+			  });
 
-        return min_info;
+	    return min_info;
+	  }
+
+	};
+
       }
-
-    };
-
-        }
 
 #ifdef PROB_REDUNDANT_INFORMATION
       /**
@@ -457,40 +499,46 @@ namespace prob
        * @param dZ @f$p(z)@f$
        * @return @f$ I_{ \operatorname{red}}(Z;X,Y) @f$ as a Scalar
        */
-        template<typename DistZgX, typename DistZgY, typename DistX,
-        typename DistY, typename DistZ>
-        typename DistZgX::scalar redundancy(const DistZgX& dZgX,
-            const DistZgY& dZgY, const DistX& dX, const DistY& dY,
-            const DistZ& dZ)
-        {
-          return core::redundancy_impl<typename DistZ::scalar,
-          typename DistX::posterior_type, typename DistY::posterior_type,
-          typename DistZgY::posterior_type>::redundancy(dZgX, dZgY, dX, dY,
-              dZ);
-        }
+      template<typename DistZgX, 
+	       typename DistZgY, 
+	       typename DistX,
+	       typename DistY, 
+	       typename DistZ>
+      typename DistZgX::scalar redundancy(const DistZgX& dZgX,
+					  const DistZgY& dZgY, const DistX& dX, const DistY& dY,
+					  const DistZ& dZ)
+      {
+	return core::redundancy_impl<typename DistZgX::scalar,
+				     typename DistZgX::conditional_type, typename DistZgY::conditional_type,
+				     typename DistZgX::posterior_type>::redundancy(dZgX, dZgY, dX, dY,
+										   dZ);
+      }
 
-        /** Calculate the intrinsic conditional mutual information defined as
-         *  @f[ I_{ \operatorname{icm}}(Z;X,Y) = \min_{p(z'|z)} I(X;Y|Z')  @f]
-         *  with @f$|Z'|=|Z|@f$ by
-         *  <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.26.3569">Maurer and Wolf</a>.
-         *  It has also been introduced as measure of unique information for
-         *  the decomposition of the mutual information @f$I(Y;Z,X)@f$ and
-         *  @f$I(X;Z,Y)@f$ (what @f$ X @f$ uniquely contains about  @f$ Y @f$ and vice versa) by
-         *  <a href="http://arxiv.org/abs/1205.4265">Griffith and Koch</a>.
-         *
-         * @param dXYgZ @f$p(x,y|z)@f$
-         * @param dZ @f$p(z)@f$
-         * @param dX Dummy argument to determine the type list of X
-         * @param dY Dummy argument to determine the type list of Y
-         * @return @f$I_{ \operatorname{icm}}(Z;X,Y) @f$ as a Scalar
-         */
-      template<typename DistXYgZ, typename DistZ, typename DistX, typename DistY>
+      /** Calculate the intrinsic conditional mutual information defined as
+       *  @f[ I_{ \operatorname{icm}}(Z;X,Y) = \min_{p(z'|z)} I(X;Y|Z')  @f]
+       *  with @f$|Z'|=|Z|@f$ by
+       *  <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.26.3569">Maurer and Wolf</a>.
+       *  It has also been introduced as measure of unique information for
+       *  the decomposition of the mutual information @f$I(Y;Z,X)@f$ and
+       *  @f$I(X;Z,Y)@f$ (what @f$ X @f$ uniquely contains about  @f$ Y @f$ and vice versa) by
+       *  <a href="http://arxiv.org/abs/1205.4265">Griffith and Koch</a>.
+       *
+       * @param dXYgZ @f$p(x,y|z)@f$
+       * @param dZ @f$p(z)@f$
+       * @param dX Dummy argument to determine the type list of X
+       * @param dY Dummy argument to determine the type list of Y
+       * @return @f$I_{ \operatorname{icm}}(Z;X,Y) @f$ as a Scalar
+       */
+      template<typename DistXYgZ, 
+	       typename DistZ, 
+	       typename DistX, 
+	       typename DistY>
       typename DistZ::scalar icm_information(const DistXYgZ& dXYgZ,
-          const DistZ& dZ, const DistX& dX, const DistY& dY)
+					     const DistZ& dZ, const DistX& dX, const DistY& dY)
       {
         return core::icm_information_impl<typename DistZ::scalar,
-            typename DistX::posterior_type, typename DistY::posterior_type,
-            typename DistZ::posterior_type>::icm_information(dXYgZ, dZ);
+					  typename DistX::posterior_type, typename DistY::posterior_type,
+					  typename DistZ::posterior_type>::icm_information(dXYgZ, dZ);
       }
 #endif
 
@@ -508,11 +556,11 @@ namespace prob
        */
       template<typename DistXgZ, typename DistYgZ, typename DistZ>
       typename DistZ::scalar minimal_information(const DistXgZ& dXgZ,
-          const DistYgZ& dYgZ, const DistZ& dZ)
+						 const DistYgZ& dYgZ, const DistZ& dZ)
       {
         return core::minimal_information_impl<typename DistZ::scalar,
-            typename DistXgZ::posterior_type, typename DistYgZ::posterior_type,
-            typename DistZ::posterior_type>::minimal_information(dXgZ, dYgZ, dZ);
+					      typename DistXgZ::posterior_type, typename DistYgZ::posterior_type,
+					      typename DistZ::posterior_type>::minimal_information(dXgZ, dYgZ, dZ);
       }
 
     }

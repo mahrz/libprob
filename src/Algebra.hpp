@@ -47,7 +47,7 @@ namespace prob
     typename ...C>
     struct join_conditionals_impl<V<C...>, V<A...>, V<B...>, Scalar, DistA, DistB>
     {
-      typedef distribution<Scalar, A..., B..., given, C...> return_type;
+      typedef prob::distribution<Scalar, A..., B..., given, C...> return_type;
 
       static return_type join_conditionals(const DistA& distA, const DistB& distB)
       {

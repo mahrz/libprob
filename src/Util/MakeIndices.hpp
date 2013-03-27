@@ -1,5 +1,5 @@
-#ifndef _MAKE_INDICES_H_
-#define _MAKE_INDICES_H_
+#ifndef _PROB_MAKE_INDICES_H_
+#define _PROB_MAKE_INDICES_H_
 
 namespace prob
 {

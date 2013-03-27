@@ -29,11 +29,11 @@
 #include "Util/TupleFunctions.hpp"
 #include "Util/TypeTraits.hpp"
 #include "Util/Formatters.hpp"
-
+	 
 #include "RandomVariable.hpp"
 #include "Splitter.hpp"
 #include "Distribution.hpp"
-
+	  
 #include "Algebra.hpp"
 #include "Initializers.hpp"
 #include "InformationTheory.hpp"
